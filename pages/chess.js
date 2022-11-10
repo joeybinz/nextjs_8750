@@ -14,69 +14,99 @@ const GLYPHS = {
 };
   
 function makeGame(div) {
-    // make a new html <table> to render chess
-    const board = document.createElement('table');
-    board.className = styles.board;
-    fillInBoard(board);
 
-    // put that table into the div we control
-    div.appendChild(board);
 
-    // make a new chess game
-    const game = new Chess.Game();
-    let gameState = game.exportJson();
+  // make a new html <table> to render chess
+  const board = document.createElement('table');
+  board.className = styles.board;
+  fillInBoard(board);
 
-    // loop through and update all the squares with a piece on them
-    Object.keys(gameState.pieces).forEach(square => {
-        // square will be "A1" through "H8"
+  // put that table into the div we control
+  div.appendChild(board);
 
-        // get the html element representing that square
-        const el = document.getElementById(square);
+  // make a new chess game
+  const game = new Chess.Game();
+  let gameState = game.exportJson();
 
-        // take that piece and put its corresponding glyph into the square
-        const piece = gameState.pieces[square];
-        el.innerText = GLYPHS[piece];
-    });
+  // loop through and update all the squares with a piece on them
+  Object.keys(gameState.pieces).forEach(square => {
+    // square will be "A1" through "H8"
+
+    // get the html element representing that square
+    const el = document.getElementById(square);
+
+    // take that piece and put its corresponding glyph into the square
+    const piece = gameState.pieces[square];
+    el.innerText = GLYPHS[piece];
+  });
 
     // either null or the actively selected square
-    let selected = null;
+  let selected = null;
 
-    // make an onClick function
-    const onClick = event => {
+  // make an onClick function
+  const onClick = event => {
     const square = event.target.id;
     console.log('clicked ' + square);
 
     // check to see if we are moving a piece
     if (selected && gameState.moves[selected].includes(square)) {
-        // move the piece
-        game.move(selected, square);
-        gameState = game.exportJson();
 
-        // update the text by clearing out the old square
-        document.getElementById(selected).innerText = "";
-        // and putting the piece on the new square
-        document.getElementById(square).innerText = GLYPHS[gameState.pieces[square]];
+      gameState.moves[selected].forEach( 
+        mv => {
+          const el = document.getElementById(mv);
+          el.classList.remove(styles.isMoveOption);  
+        }
+      )
 
-        // reset the selection state to unselected
-        selected = null;
+      // move the piece
+      game.move(selected, square);
+      gameState = game.exportJson();
+
+      // update the text by clearing out the old square
+      document.getElementById(selected).innerText = "";
+      // and putting the piece on the new square
+      document.getElementById(square).innerText = GLYPHS[gameState.pieces[square]];
+
+      // reset the selection state to unselected
+      //un-hilight squares
+
+      selected = null;
+
+
+      //AI makes a movie
+      const [movedFrom, movedTo] = Object.entries(game.aiMove())[0];
+      //game.move(movedFrom, movedTo);
+      gameState = game.exportJson();
+
+      document.getElementById(movedFrom).innerText = "";
+      document.getElementById(movedTo).innerText = GLYPHS[gameState.pieces[movedTo]];
+
     } else if (selected) {
-        // they tried to move a piece to a random spot on the board
-        return;
+      // they tried to move a piece to a random spot on the board
+      return;
     } else if (gameState.moves[square]) {
-        // clicked on a piece that can move,
-        // set the selection to that piece
-        selected = square;
-    }
-    }
+      // clicked on a piece that can move,
+      // set the selection to that piece
+      selected = square;
 
-  // put that onClick function on every square
-  Array.from(
-    board.getElementsByClassName(styles.square)
-  ).forEach(el => {
-    el.onclick = onClick;
-  });
+      //hilight squares
+      gameState.moves[square].forEach( 
+        mv => {
+          const el = document.getElementById(mv);
+          el.classList.add(styles.isMoveOption);  
+        }
+      )
+      
 
-  
+    }
+  }
+
+    // put that onClick function on every square
+    Array.from(
+      board.getElementsByClassName(styles.square)
+    ).forEach(el => {
+      el.onclick = onClick;
+    });
 
 }
   

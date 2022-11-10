@@ -20,3 +20,8 @@
 .black {
     background-color: darkgrey;
 }
+
+.square.isMoveOption {
+    cursor: pointer;
+    background-color: green;
+}
